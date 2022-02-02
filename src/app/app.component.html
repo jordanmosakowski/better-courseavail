@@ -21,5 +21,12 @@
   [dayStartMinute]="0"
   [dayEndHour]="21"
   [dayEndMinute]="59"
+  [tooltipTemplate]="tooltipTemplate"
 ></mwl-calendar-week-view>
 </main>
+
+<ng-template #tooltipTemplate let-event="event">
+  <div class='tooltip'>
+      {{event.meta.section}}
+  </div>
+</ng-template>
