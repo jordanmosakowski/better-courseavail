@@ -24,6 +24,16 @@ export class AppComponent {
 
   events: CalendarEvent[] = [];
 
+
+  preferredTimes = ["morning","afternoon","evening"];
+  selectionSettings: Settings = {
+    earliest: '08:00',
+    latest: '20:00',
+    preferredTime: 'morning',
+    maxB2B: 3,
+    maxUnits: 20
+  }
+
   constructor(private http: HttpClient){
     this.watchlist = JSON.parse(localStorage.getItem("watchlist") ?? "[]");
     this.courses = JSON.parse(localStorage.getItem("courses") ?? "{}");
@@ -76,11 +86,6 @@ export class AppComponent {
     this.updateEvents();
   }
 
-  submitForm(){
-    this.makeQuery();
-    return false;
-  }
-
   updateEvents(): void{
     localStorage.setItem("courses", JSON.stringify(this.courses));
     this.saveSelected();
@@ -93,7 +98,6 @@ export class AppComponent {
   }
 
   removeCourse(course: string): void{
-    console.log(this.courses);
     delete this.courses[course];
     console.log(this.courses);
     for(let i=0; i<this.results.length; i++){
@@ -168,11 +172,14 @@ export class AppComponent {
         end: end,
         cssClass: (ca.selected ?? false) ? "selected" : "deselected",
         color: {
-          primary: (ca.selected ?? false) ? '#fffff' : "#0288d1",
-          secondary: (ca.selected ?? false) ? '#b30738' : "#81d4fa"
+          primary: (ca.selected ?? false) ? '#fffff' : (Number(ca.seats_remaining) >0 ? "#0288d1" : "#888888"),
+          secondary: (ca.selected ?? false) ? '#b30738' : (Number(ca.seats_remaining) >0 ?"#81d4fa" : "#dddddd")
         },
         meta: {
-          section: ca.class_nbr
+          section: ca.class_nbr,
+          prof: ca.instr_1_sh,
+          seats: Number(ca.seats_remaining),
+          loc: ca.l_cname ?? ca.mtg_facility_1
         }
       });
     }
@@ -243,6 +250,7 @@ interface CourseavailResult{
   subject: string,
   instr_1_sh: string,
   l_cname: string,
+  mtg_facility_1: string,
   selected?: boolean,
 }
 
@@ -252,4 +260,12 @@ interface AutocompleteCourse{
   subject: string,
   s: string,
   d: string,
+}
+
+interface Settings{
+  earliest: string,
+  latest: string,
+  preferredTime: string,
+  maxB2B: number,
+  maxUnits: number,
 }

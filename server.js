@@ -24,7 +24,7 @@ app.get('/query', async function (req, res) {
 
 app.get('/info', async function (req, res) {
     let ids = req.query.ids;
-    let response = await axios.get("https://www.scu.edu/apps/ws/courseavail/details/4340/ugrad/" + ids);
+    let response = await axios.get("https://www.scu.edu/apps/ws/courseavail/details/4340/all/" + ids);
     res.send(response.data);
 });
 

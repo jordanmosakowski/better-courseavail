@@ -12,6 +12,19 @@
         <mat-icon>cancel</mat-icon>
       </button><br>
     </div>
+    <div>
+      <h4>Earliest start:</h4>
+      <input type="time" [(ngModel)]="selectionSettings.earliest">
+      <h4>Latest end:</h4>
+      <input type="time" [(ngModel)]="selectionSettings.latest">
+      <!-- Dropdown for preferredTime: morning, afternoon, evening -->
+      <h4>Preferred time:</h4>
+      <mat-select [(ngModel)]="selectionSettings.preferredTime">
+        <mat-option *ngFor="let time of preferredTimes" [value]="time">
+          {{time}}
+        </mat-option>
+      </mat-select>
+    </div>
   </div>
   <mwl-calendar-week-view
   [viewDate]="viewDate"
@@ -27,6 +40,12 @@
 
 <ng-template #tooltipTemplate let-event="event">
   <div class='tooltip'>
-      {{event.meta.section}}
+    <div class="smaller">
+    {{event.title}}<br>
+      {{event.meta.section}}<br>
+        {{event.meta.prof}}<br>
+        {{event.meta.seats}} Seats<br>
+        {{event.meta.loc}}<br>
+      </div>
   </div>
 </ng-template>
