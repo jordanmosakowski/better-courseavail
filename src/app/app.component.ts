@@ -2,9 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { CalendarEvent } from 'angular-calendar';
-import axios from 'axios';
 import { Observable } from 'rxjs';
 import {map, startWith} from 'rxjs/operators';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-root',
@@ -61,7 +61,6 @@ export class AppComponent {
   async requestCourselist(){
     const data: any = await this.http.get("http://localhost:3000/courses").toPromise();
     this.autocompleteList = data.results.map((s: AutocompleteCourse) => s.value);
-    console.log(data.results);
   }
 
   optionClicked(course: String){
@@ -80,7 +79,8 @@ export class AppComponent {
     for(let result of this.results){
       result.selected = selected.includes(result.class_nbr);
     }
-    console.log(this.results[0]);
+    let customs = JSON.parse(localStorage.getItem("customs") ?? "[]");
+    this.results.push(...customs);
     this.getCourseNames();
     this.updateEvents();
   }
@@ -91,8 +91,9 @@ export class AppComponent {
 
   getCourseNames(){
     for(let result of this.results){
-      if(this.courses[result.subject + " " + result.catalog_nbr] == null){
-        this.courses[result.subject + " " + result.catalog_nbr] = true;
+      let name = this.getCourseName(result);
+      if(this.courses[name] == null && !result.isCustom){
+        this.courses[name] = true;
       }
     }
   }
@@ -100,7 +101,7 @@ export class AppComponent {
   eventClicked($event: any){
     const classNbr = $event.event.meta.section;
     let course = this.results.find(c => c.class_nbr == classNbr);
-    if(course==null){
+    if(course==null || course.isCustom){
       return;
     }
     course.selected = !(course.selected ?? false);
@@ -109,9 +110,10 @@ export class AppComponent {
 
   updateEvents(): void{
     localStorage.setItem("courses", JSON.stringify(this.courses));
+    localStorage.setItem("customs", JSON.stringify(this.results.filter(c => c.isCustom ?? false)));
     this.saveSelected();
     const events: CalendarEvent[] = [];
-    const selected = this.results.filter(c => c.selected ?? false);
+    const selected = this.results.filter(c => (c.selected ?? false) || (c.isCustom ?? false));
     for(let course of this.results){
       events.push(...this.courseavailToEvent(course,selected));
     }
@@ -123,7 +125,7 @@ export class AppComponent {
     console.log(this.courses);
     for(let i=0; i<this.results.length; i++){
       const result = this.results[i];
-      if(result.subject + " " + result.catalog_nbr == course){
+      if(this.getCourseName(result) == course){
         this.results.splice(i,1);
         let watchlistIndex = this.watchlist.indexOf(result.class_nbr);
         if(watchlistIndex>=0){
@@ -166,14 +168,31 @@ export class AppComponent {
     localStorage.setItem("selected",JSON.stringify(ids));
   }
 
+  getCourseName(course: CourseavailResult): string{
+    if(course.catalog_nbr == null){
+      return course.subject;
+    }
+    return course.subject + " " + course.catalog_nbr;
+  }
+
+  get customList(): CourseavailResult[]{
+    return this.results.filter(c => c.isCustom ?? false);
+  }
+
+  removeCustom(course: CourseavailResult): void{
+    let index = this.results.indexOf(course);
+    this.results.splice(index,1);
+    this.updateEvents();
+  }
+
   courseavailToEvent(ca: CourseavailResult, selected: CourseavailResult[]): CalendarEvent[]{
     const events: CalendarEvent[] = [];
-    const title = ca.subject + " " + ca.catalog_nbr;
-    if(!this.courses[title]){
+    const title = this.getCourseName(ca);
+    if(!this.courses[title] && !ca.isCustom){
       return [];
     }
     //If the title matches a selected course, return an empty array
-    if(selected.find(c => c.subject + " " + c.catalog_nbr == title) != null && !(ca.selected ?? false)){
+    if(selected.find(c => this.getCourseName(c) == title) != null && !((ca.selected ?? false) || (ca.isCustom ?? false))){
       return [];
     }
     if(this.hasCollision(ca, selected)){
@@ -188,21 +207,23 @@ export class AppComponent {
     for(let day of days){
       const start = new Date(year, month, 18+this.dayStrToNum(day), startHour, startMinute);
       const end = new Date(year, month, 18+this.dayStrToNum(day), startHour, endMinute);
+      let selected = (ca.selected ?? false) || (ca.isCustom ?? false);
       events.push({
         title: title,
         start: start,
         end: end,
-        cssClass: (ca.selected ?? false) ? "selected" : "deselected",
+        cssClass: selected ? "selected" : "deselected",
         color: {
-          primary: (ca.selected ?? false) ? '#fffff' : (Number(ca.seats_remaining) >0 ? "#0288d1" : "#888888"),
-          secondary: (ca.selected ?? false) ? '#b30738' : (Number(ca.seats_remaining) >0 ?"#81d4fa" : "#dddddd")
+          primary: selected ? '#fffff' : (Number(ca.seats_remaining) > 0 ? "#0288d1" : "#888888"),
+          secondary: selected ? '#b30738' : (Number(ca.seats_remaining) > 0 ?"#81d4fa" : "#dddddd")
         },
         meta: {
           section: ca.class_nbr,
           prof: ca.instr_1_sh,
           seats: Number(ca.seats_remaining),
           loc: ca.l_cname ?? ca.mtg_facility_1,
-          time: ca.time1_fr+"-"+ca.mtg_time_end_1
+          time: ca.time1_fr+"-"+ca.mtg_time_end_1,
+          isCustom: ca.isCustom ?? false
         }
       });
     }
@@ -210,7 +231,7 @@ export class AppComponent {
   }
 
   hasCollision(ca: CourseavailResult, selected: CourseavailResult[]): boolean{
-    if(ca.selected){
+    if(ca.selected || ca.isCustom){
       return false;
     }
     const courseDays = ca.mtg_days_1.split("");
@@ -228,7 +249,7 @@ export class AppComponent {
       const sStart = new Date(2022, 1, 1, Number(s.c_hrstart), Number(s.c_mnstart));
       const sEnd = new Date(2022, 1, 1, Number(s.c_hrstart), Number(s.c_mnstart) + Number(s.c_duration));
       //check if times overlap
-      if(courseStart.getTime() <= sEnd.getTime() && courseEnd.getTime() >= sStart.getTime()){
+      if(courseStart.getTime() <= sEnd.getTime() && courseEnd.getTime() > sStart.getTime()){
         return true;
       }
     }
@@ -257,6 +278,97 @@ export class AppComponent {
     }
   }
 
+  showPopup = false;
+
+  openPopup(){
+    this.showPopup = true;
+  }
+
+  closePopup = () => {
+    this.showPopup = false;
+  }
+
+  createCustom = (name: string, days: any, startTime: string, endTime: string) => {
+    if(name.length == 0){
+      alert("Please enter a name for your custom item");
+      return;
+    }
+    if(days.length == 0){
+      alert("Please enter at least one day for your custom item");
+      return;
+    }
+    //compare start and end time
+    const startHour = Number(startTime.split(":")[0]);
+    const startMinute = Number(startTime.split(":")[1]);
+    const endHour = Number(endTime.split(":")[0]);
+    const endMinute = Number(endTime.split(":")[1]);
+    //format start and end time as startTime-endTime
+    let start = "";
+    let end = "";
+    if(startHour<13){
+      start = startHour.toString();
+    }
+    else{
+      start = (startHour-12).toString();
+    }
+    if(startMinute<10){
+      if(startMinute!=0){
+        start += ":0"+startMinute.toString();
+      }
+    }
+    else{
+      start += ":"+startMinute.toString();
+    }
+    if(startHour<12 && endHour>=12){
+      start += "am";
+    }
+
+    if(endHour<13){
+      end = endHour.toString();
+    }
+    else{
+      end = (endHour-12).toString();
+    }
+    if(endMinute<10){
+      if(endMinute!=0){
+        end += ":0"+endMinute.toString();
+      }
+    }
+    else{
+      end += ":"+endMinute.toString();
+    }
+    if(endHour<12){
+      end += "am";
+    }
+    else{
+      end += "pm";
+    }
+
+    console.log(start,end);
+
+    if((startHour > endHour)
+      || (startHour == endHour && startMinute >= endMinute)
+      || (startHour == endHour && startMinute == endMinute)){
+      alert("Start time must be before end time");
+      return;
+    }
+    let duration = (endHour - startHour) * 60 + (endMinute - startMinute);
+    this.results.push({
+      class_nbr: "custom-"+uuidv4(),
+      c_duration: duration,
+      isCustom: true,
+      c_hrstart: startHour.toString(),
+      c_mnstart: startMinute.toString(),
+      mtg_days_1: days,
+      seats_remaining: '1',
+      subject: name,
+      mtg_time_end_1: end,
+      time1_fr: start,
+    });
+    this.showPopup = false;
+    this.updateEvents();
+  }
+
 }
 
 interface CourseavailResult{
@@ -265,18 +377,14 @@ interface CourseavailResult{
   c_mnstart: string,
   mtg_days_1: string,
   seats_remaining: string,
-  seats_text: string,
-  class_descr: string,
-  course_descr: string,
-  catalog_nbr: string,
+  catalog_nbr?: string,
   class_nbr: string, // ######
   subject: string,
-  instr_1_sh: string,
-  l_cname: string,
-  mtg_facility_1: string,
+  instr_1_sh?: string,
+  l_cname?: string,
+  mtg_facility_1?: string,
   selected?: boolean,
   isCustom?: boolean,
-  mtg_time_beg_1: string,
   mtg_time_end_1: string,
   time1_fr: string,
 }

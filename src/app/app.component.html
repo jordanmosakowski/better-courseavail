@@ -35,26 +35,26 @@
         </button><br>
       </mat-list-item>
       <h3>Custom:</h3>
-      <mat-list-item *ngFor="let course of coursesArr">
-        {{course}}
-        <button mat-icon-button (click)='removeCourse(course)'>
+      <button mat-raised-button color='primary' (click)="openPopup()">Add Custom Item</button>
+      <mat-list-item *ngFor="let course of customList">
+        {{course.subject}}
+        <button mat-icon-button (click)='removeCustom(course)'>
           <mat-icon>cancel</mat-icon>
         </button><br>
       </mat-list-item>
     </mat-list>
-    <div style="display: none">
+    <!-- <div style="display: none">
       <h4>Earliest start:</h4>
       <input type="time" [(ngModel)]="selectionSettings.earliest">
       <h4>Latest end:</h4>
       <input type="time" [(ngModel)]="selectionSettings.latest">
-      <!-- Dropdown for preferredTime: morning, afternoon, evening -->
       <h4>Preferred time:</h4>
       <mat-select [(ngModel)]="selectionSettings.preferredTime">
         <mat-option *ngFor="let time of preferredTimes" [value]="time">
           {{time}}
         </mat-option>
       </mat-select>
-    </div>
+    </div> -->
   </div>
   <mwl-calendar-week-view
   [viewDate]="viewDate"
@@ -68,16 +68,21 @@
   [excludeDays]="includeWeekends ? [] : [0,6]"
 ></mwl-calendar-week-view>
 </main>
+<div class="popup" *ngIf="showPopup">
+  <app-popup [closePopup]="closePopup" [addItem]="createCustom"></app-popup>
+</div>
 
 <ng-template #tooltipTemplate let-event="event">
   <div class='tooltip'>
     <div class="smaller">
     {{event.title}}<br>
-        {{event.meta.time}}<br>
-        {{event.meta.prof}}<br>
-        {{event.meta.seats}} Seats<br>
-        {{event.meta.loc}}<br>
-        Section {{event.meta.section}}<br>
+    {{event.meta.time}}<br>
+    <ng-container *ngIf="!event.meta.isCustom">
+      {{event.meta.prof}}<br>
+      {{event.meta.seats}} Seats<br>
+      {{event.meta.loc}}<br>
+      Section {{event.meta.section}}<br>
+    </ng-container>
       </div>
   </div>
 </ng-template>

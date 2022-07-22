@@ -1,0 +1,24 @@
+<div class="content">
+    <h3>Add custom item</h3>
+    <mat-form-field appearance="standard">
+        <mat-label>Item Name</mat-label>
+        <input matInput type="text" [(ngModel)]="name" placeholder="Soccer">
+    </mat-form-field>
+    <div>
+        Start Time:
+        <input type="time" [(ngModel)]="startTime">
+        End Time:
+        <input type="time" [(ngModel)]="endTime">
+
+    </div>
+    <div>
+        <mat-checkbox *ngFor="let day of daysList" class="checkbox" [(ngModel)]="days[day]">
+            {{getDayLong(day)}}
+        </mat-checkbox>
+    </div>
+    <div>
+        <!-- Create and cancel button -->
+        <button mat-raised-button color='primary' (click)="create()">Create</button>
+        <button mat-raised-button (click)="cancel()">Cancel</button>
+    </div>
+</div>
