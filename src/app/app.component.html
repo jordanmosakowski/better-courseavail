@@ -1,18 +1,48 @@
+<div class="full-width">
+  <mat-form-field appearance="fill">
+    <mat-label>Enter classes to add to your schedule</mat-label>
+    <input type="text"
+           placeholder="COEN 10"
+           aria-label="Enter classes to add to your schedule"
+           matInput
+           [(ngModel)]="rawInput"
+           [formControl]="myControl"
+           (submit)="makeQuery()"
+           (keydown.enter)="makeQuery()"
+           [matAutocomplete]="auto">
+    <mat-autocomplete #auto="matAutocomplete">
+      <mat-option *ngFor="let option of filteredOptions | async" [value]="option" (click)="optionClicked(option)">
+        {{option}}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
 
-<input [(ngModel)]="rawInput" type='text' (submit)="makeQuery()">
-<button (click)="makeQuery()">Fetch classes</button>
+</div>
+<!-- <input [(ngModel)]="rawInput" type='text' (submit)="makeQuery()"> -->
+<!-- <button (click)="makeQuery()">Fetch classes</button> -->
 <main>
   <div class='configure'>
-    <h1>Configure</h1>
-    <h4>Show/Hide classes:</h4>
-    <div *ngFor="let course of coursesArr">
-      <input type="checkbox" [(ngModel)]="courses[course]" (change)="updateEvents()">
-      {{course}}
-      <button mat-icon-button (click)='removeCourse(course)'>
-        <mat-icon>cancel</mat-icon>
-      </button><br>
-    </div>
-    <div>
+    <mat-list>
+      <h1>Configure</h1>
+      <mat-list-item>
+        <mat-checkbox [(ngModel)]="includeWeekends">Show Weekends</mat-checkbox>
+      </mat-list-item>
+      <h3>Show/Hide classes:</h3>
+      <mat-list-item *ngFor="let course of coursesArr">
+        <mat-checkbox [(ngModel)]="courses[course]" (change)="updateEvents()">{{course}}</mat-checkbox>
+        <button mat-icon-button (click)='removeCourse(course)'>
+          <mat-icon>cancel</mat-icon>
+        </button><br>
+      </mat-list-item>
+      <h3>Custom:</h3>
+      <mat-list-item *ngFor="let course of coursesArr">
+        {{course}}
+        <button mat-icon-button (click)='removeCourse(course)'>
+          <mat-icon>cancel</mat-icon>
+        </button><br>
+      </mat-list-item>
+    </mat-list>
+    <div style="display: none">
       <h4>Earliest start:</h4>
       <input type="time" [(ngModel)]="selectionSettings.earliest">
       <h4>Latest end:</h4>
@@ -35,6 +65,7 @@
   [dayEndHour]="21"
   [dayEndMinute]="59"
   [tooltipTemplate]="tooltipTemplate"
+  [excludeDays]="includeWeekends ? [] : [0,6]"
 ></mwl-calendar-week-view>
 </main>
 
@@ -42,10 +73,11 @@
   <div class='tooltip'>
     <div class="smaller">
     {{event.title}}<br>
-      {{event.meta.section}}<br>
+        {{event.meta.time}}<br>
         {{event.meta.prof}}<br>
         {{event.meta.seats}} Seats<br>
         {{event.meta.loc}}<br>
+        Section {{event.meta.section}}<br>
       </div>
   </div>
 </ng-template>

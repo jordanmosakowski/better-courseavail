@@ -1,7 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { CalendarEvent } from 'angular-calendar';
 import axios from 'axios';
+import { Observable } from 'rxjs';
+import {map, startWith} from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -11,16 +14,25 @@ import axios from 'axios';
 export class AppComponent {
   title = 'scu-schedule-planner';
 
-  rawInput: string = "";
-  watchlist: string[];
+  rawInput: String = "";
+  watchlist: String[];
+
+  includeWeekends = false;
 
   courses: {[name: string]: boolean};;
 
   results: CourseavailResult[] = [];
 
-  autocompleteList:AutocompleteCourse[] = [];
+  autocompleteList:String[] = [];
+  myControl = new FormControl('');
+  filteredOptions: Observable<String[]>;
+  private _filter(value: String): String[] {
+    const filterValue = value.toLowerCase();
 
-  viewDate: Date = new Date(2022,2,27);
+    return this.autocompleteList.filter(option => option.toLowerCase().includes(filterValue));
+  }
+
+  viewDate: Date = new Date(2022,8,18);
 
   events: CalendarEvent[] = [];
 
@@ -35,6 +47,10 @@ export class AppComponent {
   }
 
   constructor(private http: HttpClient){
+    this.filteredOptions = this.myControl.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value || '')),
+    );
     this.watchlist = JSON.parse(localStorage.getItem("watchlist") ?? "[]");
     this.courses = JSON.parse(localStorage.getItem("courses") ?? "{}");
     console.log(this.watchlist);
@@ -44,8 +60,13 @@ export class AppComponent {
 
   async requestCourselist(){
     const data: any = await this.http.get("http://localhost:3000/courses").toPromise();
-    this.autocompleteList = data.results;
+    this.autocompleteList = data.results.map((s: AutocompleteCourse) => s.value);
     console.log(data.results);
+  }
+
+  optionClicked(course: String){
+    this.rawInput = course;
+    this.makeQuery();
   }
 
   async requestClassInfo(): Promise<void>{
@@ -108,6 +129,7 @@ export class AppComponent {
         if(watchlistIndex>=0){
           this.watchlist.splice(watchlistIndex,1);
         }
+        i--;
       }
     }
     localStorage.setItem("watchlist", JSON.stringify(this.watchlist));
@@ -162,10 +184,10 @@ export class AppComponent {
     const startMinute = Number(ca.c_mnstart);
     const endMinute = startMinute + ca.c_duration;
     const year = 2022;
-    const month = 2;
+    const month = 8;
     for(let day of days){
-      const start = new Date(year, month, 27+this.dayStrToNum(day), startHour, startMinute);
-      const end = new Date(year, month, 27+this.dayStrToNum(day), startHour, endMinute);
+      const start = new Date(year, month, 18+this.dayStrToNum(day), startHour, startMinute);
+      const end = new Date(year, month, 18+this.dayStrToNum(day), startHour, endMinute);
       events.push({
         title: title,
         start: start,
@@ -179,7 +201,8 @@ export class AppComponent {
           section: ca.class_nbr,
           prof: ca.instr_1_sh,
           seats: Number(ca.seats_remaining),
-          loc: ca.l_cname ?? ca.mtg_facility_1
+          loc: ca.l_cname ?? ca.mtg_facility_1,
+          time: ca.time1_fr+"-"+ca.mtg_time_end_1
         }
       });
     }
@@ -200,10 +223,10 @@ export class AppComponent {
       if(!sDays.map(d => courseDays.includes(d)).includes(true)){
         continue;
       }
-      const courseStart = new Date(2022, 2, 27, courseStartHour, courseStartMinute);
-      const courseEnd = new Date(2022, 2, 27, courseStartHour, courseEndMinute);
-      const sStart = new Date(2022, 2, 27, Number(s.c_hrstart), Number(s.c_mnstart));
-      const sEnd = new Date(2022, 2, 27, Number(s.c_hrstart), Number(s.c_mnstart) + Number(s.c_duration));
+      const courseStart = new Date(2022, 1, 1, courseStartHour, courseStartMinute);
+      const courseEnd = new Date(2022, 1, 1, courseStartHour, courseEndMinute);
+      const sStart = new Date(2022, 1, 1, Number(s.c_hrstart), Number(s.c_mnstart));
+      const sEnd = new Date(2022, 1, 1, Number(s.c_hrstart), Number(s.c_mnstart) + Number(s.c_duration));
       //check if times overlap
       if(courseStart.getTime() <= sEnd.getTime() && courseEnd.getTime() >= sStart.getTime()){
         return true;
@@ -252,6 +275,10 @@ interface CourseavailResult{
   l_cname: string,
   mtg_facility_1: string,
   selected?: boolean,
+  isCustom?: boolean,
+  mtg_time_beg_1: string,
+  mtg_time_end_1: string,
+  time1_fr: string,
 }
 
 interface AutocompleteCourse{

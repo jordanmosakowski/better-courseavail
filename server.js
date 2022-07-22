@@ -13,7 +13,7 @@ app.get('/', function (req, res) {
 app.get('/query', async function (req, res) {
     let query = req.query.query;
     let response = await axios.post(
-        "https://www.scu.edu/apps/ws/courseavail/search/4340/all",
+        "https://www.scu.edu/apps/ws/courseavail/search/4400/all",
         querystring.stringify({
             q: query,
             maxRes: 300
@@ -24,13 +24,13 @@ app.get('/query', async function (req, res) {
 
 app.get('/info', async function (req, res) {
     let ids = req.query.ids;
-    let response = await axios.get("https://www.scu.edu/apps/ws/courseavail/details/4340/all/" + ids);
+    let response = await axios.get("https://www.scu.edu/apps/ws/courseavail/details/4400/all/" + ids);
     res.send(response.data);
 });
 
 app.get("/courses", async function (req, res) {
-    let response = await axios.get("https://www.scu.edu/apps/ws/courseavail/autocomplete/4340/all/courses");
+    let response = await axios.get("https://www.scu.edu/apps/ws/courseavail/autocomplete/4400/all/courses");
     res.send(response.data);
 });
 
-app.listen(3000)
+app.listen(3000);

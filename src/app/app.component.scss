@@ -16,3 +16,11 @@ main{
         font-size: 0.8em;
     }
 }
+
+.full-width{
+    width: 100%;
+    margin: 5px;
+    mat-form-field{
+        width: calc(100vw - 10px);
+    }
+}
