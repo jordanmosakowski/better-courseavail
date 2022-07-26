@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { CalendarEvent } from 'angular-calendar';
 import { Observable } from 'rxjs';
 import {map, startWith} from 'rxjs/operators';
@@ -27,7 +27,7 @@ export class AppComponent {
   results: CourseavailResult[] = [];
 
   autocompleteList:String[] = [];
-  myControl = new FormControl('');
+  myControl = new UntypedFormControl('');
   filteredOptions: Observable<String[]>;
   private _filter(value: String): String[] {
     const filterValue = value.toLowerCase();
