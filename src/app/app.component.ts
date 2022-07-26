@@ -15,11 +15,14 @@ export class AppComponent {
   title = 'scu-schedule-planner';
 
   rawInput: String = "";
-  watchlist: String[];
+  watchlist: String[] = [];
 
   includeWeekends = false;
 
-  courses: {[name: string]: boolean};;
+  courses: {[name: string]: boolean} = {};
+
+  quarters: Quarter[] = [];
+  selectedQuarter: string | undefined;
 
   results: CourseavailResult[] = [];
 
@@ -38,28 +41,24 @@ export class AppComponent {
 
 
   preferredTimes = ["morning","afternoon","evening"];
-  selectionSettings: Settings = {
-    earliest: '08:00',
-    latest: '20:00',
-    preferredTime: 'morning',
-    maxB2B: 3,
-    maxUnits: 20
-  }
 
   constructor(private http: HttpClient){
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value || '')),
     );
-    this.watchlist = JSON.parse(localStorage.getItem("watchlist") ?? "[]");
-    this.courses = JSON.parse(localStorage.getItem("courses") ?? "{}");
-    console.log(this.watchlist);
-    this.requestClassInfo();
-    this.requestCourselist();
+    this.getQuarters();
+  }
+
+  async getQuarters(){
+    const data: any = await this.http.get("http://localhost:3000/quarters").toPromise();
+    this.quarters = data.indb;
+    this.selectedQuarter = data.currdef.value.toString();
+    this.changeQuarter();
   }
 
   async requestCourselist(){
-    const data: any = await this.http.get("http://localhost:3000/courses").toPromise();
+    const data: any = await this.http.get("http://localhost:3000/courses?quarter="+this.selectedQuarter).toPromise();
     this.autocompleteList = data.results.map((s: AutocompleteCourse) => s.value);
   }
 
@@ -69,17 +68,20 @@ export class AppComponent {
   }
 
   async requestClassInfo(): Promise<void>{
+    let selected = JSON.parse(localStorage.getItem(this.selectedQuarter+"-selected") ?? "[]");
+    let customs = JSON.parse(localStorage.getItem(this.selectedQuarter+"-customs") ?? "[]");
     if(this.watchlist.length == 0){
+      this.results = customs;
+      this.getCourseNames();
+      this.updateEvents();
       return;
     }
     const watchlist = this.watchlist.join(",");
-    const data: any = await this.http.get("http://localhost:3000/info?ids=" + watchlist).toPromise();
+    const data: any = await this.http.get("http://localhost:3000/info?quarter="+this.selectedQuarter+"&ids=" + watchlist).toPromise();
     this.results = data.results;
-    let selected = JSON.parse(localStorage.getItem("selected") ?? "[]");
     for(let result of this.results){
       result.selected = selected.includes(result.class_nbr);
     }
-    let customs = JSON.parse(localStorage.getItem("customs") ?? "[]");
     this.results.push(...customs);
     this.getCourseNames();
     this.updateEvents();
@@ -109,8 +111,8 @@ export class AppComponent {
   }
 
   updateEvents(): void{
-    localStorage.setItem("courses", JSON.stringify(this.courses));
-    localStorage.setItem("customs", JSON.stringify(this.results.filter(c => c.isCustom ?? false)));
+    localStorage.setItem(this.selectedQuarter+"-courses", JSON.stringify(this.courses));
+    localStorage.setItem(this.selectedQuarter+"-customs", JSON.stringify(this.results.filter(c => c.isCustom ?? false)));
     this.saveSelected();
     const events: CalendarEvent[] = [];
     const selected = this.results.filter(c => (c.selected ?? false) || (c.isCustom ?? false));
@@ -134,7 +136,7 @@ export class AppComponent {
         i--;
       }
     }
-    localStorage.setItem("watchlist", JSON.stringify(this.watchlist));
+    localStorage.setItem(this.selectedQuarter+"-watchlist", JSON.stringify(this.watchlist));
     this.getCourseNames();
     this.updateEvents();
   }
@@ -146,7 +148,7 @@ export class AppComponent {
       if(code.split(" ").length<2){
         continue;
       }
-      const data: any = await this.http.get("http://localhost:3000/query?query="+code).toPromise();
+      const data: any = await this.http.get("http://localhost:3000/query?quarter="+this.selectedQuarter+"&query="+code).toPromise();
       const courses: CourseavailResult[] = data.results;
       this.rawInput = "";
       //add non-duplicate courses to this.results
@@ -157,7 +159,7 @@ export class AppComponent {
         }
       }
     }
-    localStorage.setItem("watchlist", JSON.stringify(this.watchlist));
+    localStorage.setItem(this.selectedQuarter+"-watchlist", JSON.stringify(this.watchlist));
     this.getCourseNames();
     this.updateEvents();
   }
@@ -165,7 +167,7 @@ export class AppComponent {
   saveSelected(): void{
     const selected = this.results.filter(c => c.selected ?? false);
     const ids = selected.map(c => c.class_nbr);
-    localStorage.setItem("selected",JSON.stringify(ids));
+    localStorage.setItem(this.selectedQuarter+"-selected",JSON.stringify(ids));
   }
 
   getCourseName(course: CourseavailResult): string{
@@ -369,6 +371,14 @@ export class AppComponent {
     this.updateEvents();
   }
 
+  changeQuarter(){
+    this.watchlist = JSON.parse(localStorage.getItem(this.selectedQuarter+"-watchlist") ?? "[]");
+    this.courses = JSON.parse(localStorage.getItem(this.selectedQuarter+"-courses") ?? "{}");
+    console.log(this.watchlist);
+    this.requestClassInfo();
+    this.requestCourselist();
+  }
+
 }
 
 interface CourseavailResult{
@@ -397,10 +407,7 @@ interface AutocompleteCourse{
   d: string,
 }
 
-interface Settings{
-  earliest: string,
-  latest: string,
-  preferredTime: string,
-  maxB2B: number,
-  maxUnits: number,
+interface Quarter{
+  value: string,
+  label: string
 }

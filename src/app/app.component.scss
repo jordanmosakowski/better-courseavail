@@ -19,10 +19,11 @@ main{
 }
 
 .full-width{
-    width: 100%;
+    display: grid;
+    grid-template-columns: auto 150px;
     margin: 5px;
     mat-form-field{
-        width: calc(100vw - 10px);
+        width: calc(100vw - 180px);
     }
 }
 
@@ -34,4 +35,7 @@ main{
     bottom: 0;
     background-color: rgba(0,0,0,0.6);
     z-index: 100;
+}
+.quarter-select{
+    margin-top: 10px;
 }

@@ -16,6 +16,14 @@
       </mat-option>
     </mat-autocomplete>
   </mat-form-field>
+  <div class="quarter-select">
+    Quarter: 
+    <mat-select [(ngModel)]="selectedQuarter" (selectionChange)="changeQuarter()">
+      <mat-option *ngFor="let quarter of quarters" [value]="quarter.value">
+        {{quarter.label}}
+      </mat-option>
+    </mat-select>
+  </div>
 
 </div>
 <!-- <input [(ngModel)]="rawInput" type='text' (submit)="makeQuery()"> -->
@@ -27,21 +35,21 @@
       <mat-list-item>
         <mat-checkbox [(ngModel)]="includeWeekends">Show Weekends</mat-checkbox>
       </mat-list-item>
-      <h3>Show/Hide classes:</h3>
+      <h3>Show/Hide Classes:</h3>
       <mat-list-item *ngFor="let course of coursesArr">
         <mat-checkbox [(ngModel)]="courses[course]" (change)="updateEvents()">{{course}}</mat-checkbox>
         <button mat-icon-button (click)='removeCourse(course)'>
           <mat-icon>cancel</mat-icon>
         </button><br>
       </mat-list-item>
-      <h3>Custom:</h3>
-      <button mat-raised-button color='primary' (click)="openPopup()">Add Custom Item</button>
+      <h3>Custom Items:</h3>
       <mat-list-item *ngFor="let course of customList">
         {{course.subject}}
         <button mat-icon-button (click)='removeCustom(course)'>
           <mat-icon>cancel</mat-icon>
-        </button><br>
+        </button>
       </mat-list-item>
+      <button mat-raised-button color='primary' (click)="openPopup()">Add Custom Item</button>
     </mat-list>
     <!-- <div style="display: none">
       <h4>Earliest start:</h4>
