@@ -39,9 +39,6 @@ export class AppComponent {
 
   events: CalendarEvent[] = [];
 
-
-  preferredTimes = ["morning","afternoon","evening"];
-
   constructor(private http: HttpClient){
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),

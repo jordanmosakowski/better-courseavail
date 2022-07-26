@@ -105,6 +105,16 @@
             ],
             "scripts": []
           }
+        },
+        "deploy": {
+          "builder": "@angular/fire:deploy",
+          "options": {
+            "prerender": false,
+            "ssr": false,
+            "browserTarget": "scu-schedule-planner:build:production",
+            "firebaseProject": "courseavailbutbetter",
+            "firebaseHostingSite": "courseavailbutbetter"
+          }
         }
       }
     }
