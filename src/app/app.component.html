@@ -24,6 +24,14 @@
       </mat-option>
     </mat-select>
   </div>
+  <div class="sign-in-button">
+    <button *ngIf='user == null' mat-raised-button color="primary" (click)="signIn()">Sign In</button>
+    <button *ngIf="user != null" mat-button [matMenuTriggerFor]="menu">Account</button>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item>Change Schedule</button>
+      <button mat-menu-item (click)="signOut()">Sign Out</button>
+    </mat-menu>
+  </div>
 
 </div>
 <!-- <input [(ngModel)]="rawInput" type='text' (submit)="makeQuery()"> -->
@@ -79,6 +87,14 @@
 <div class="popup" *ngIf="showPopup">
   <app-popup [closePopup]="closePopup" [addItem]="createCustom"></app-popup>
 </div>
+<!-- <div class="popup" *ngIf="showSignIn">
+  <div class="sign-in-popup">
+    <firebase-ui
+    (signInSuccessWithAuthResult)="successCallback($event)"
+    (signInFailure)="errorCallback($event)"
+    (uiShown)="uiShownCallback()"></firebase-ui>
+  </div>
+</div> -->
 
 <ng-template #tooltipTemplate let-event="event">
   <div class='tooltip'>
@@ -94,3 +110,4 @@
       </div>
   </div>
 </ng-template>
+

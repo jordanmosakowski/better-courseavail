@@ -1,7 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { UntypedFormControl } from '@angular/forms';
 import { CalendarEvent } from 'angular-calendar';
+import firebase from 'firebase/compat/app';
 import { Observable } from 'rxjs';
 import {map, startWith} from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
@@ -39,12 +42,18 @@ export class AppComponent {
 
   events: CalendarEvent[] = [];
 
-  constructor(private http: HttpClient){
+  user: firebase.User | undefined | null;
+
+  constructor(private http: HttpClient, private auth: AngularFireAuth, private afs: AngularFirestore){
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value || '')),
     );
     this.getQuarters();
+    auth.authState.subscribe(user => {
+      this.user = user;
+      console.log(user);
+    });
   }
 
   async getQuarters(){
@@ -371,9 +380,20 @@ export class AppComponent {
   changeQuarter(){
     this.watchlist = JSON.parse(localStorage.getItem(this.selectedQuarter+"-watchlist") ?? "[]");
     this.courses = JSON.parse(localStorage.getItem(this.selectedQuarter+"-courses") ?? "{}");
-    console.log(this.watchlist);
     this.requestClassInfo();
     this.requestCourselist();
+  }
+
+
+  showSignIn = false;
+
+  signIn(){
+    // this.showSignIn = true;
+    this.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+  }
+
+  signOut(){
+    this.auth.signOut();
   }
 
 }
