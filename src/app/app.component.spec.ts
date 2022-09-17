@@ -16,16 +16,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'scu-schedule-planner'`, () => {
+  it(`should have as title 'better-courseavail'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('scu-schedule-planner');
+    expect(app.title).toEqual('better-courseavail');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('scu-schedule-planner app is running!');
+    expect(compiled.querySelector('.content span')?.textContent).toContain('better-courseavail app is running!');
   });
 });

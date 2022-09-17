@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "scu-schedule-planner": {
+    "better-courseavail": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -20,7 +20,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/scu-schedule-planner",
+            "outputPath": "dist/better-courseavail",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -73,10 +73,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "scu-schedule-planner:build:production"
+              "browserTarget": "better-courseavail:build:production"
             },
             "development": {
-              "browserTarget": "scu-schedule-planner:build:development"
+              "browserTarget": "better-courseavail:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -84,7 +84,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "scu-schedule-planner:build"
+            "browserTarget": "better-courseavail:build"
           }
         },
         "test": {
@@ -109,5 +109,5 @@
       }
     }
   },
-  "defaultProject": "scu-schedule-planner"
+  "defaultProject": "better-courseavail"
 }

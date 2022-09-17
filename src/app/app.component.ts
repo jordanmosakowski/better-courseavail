@@ -12,7 +12,9 @@ import { v4 as uuidv4 } from 'uuid';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'scu-schedule-planner';
+  title = 'better-courseavail';
+
+  apiUrl = "https://bettercourseavail.com/api/v1";
 
   rawInput: String = "";
   watchlist: String[] = [];
@@ -51,14 +53,14 @@ export class AppComponent {
   }
 
   async getQuarters(){
-    const data: any = await this.http.get("http://localhost:3000/quarters").toPromise();
+    const data: any = await this.http.get(this.apiUrl+"/quarters").toPromise();
     this.quarters = data.indb;
     this.selectedQuarter = data.currdef.value.toString();
     this.changeQuarter();
   }
 
   async requestCourselist(){
-    const data: any = await this.http.get("http://localhost:3000/courses?quarter="+this.selectedQuarter).toPromise();
+    const data: any = await this.http.get(this.apiUrl+"/courses?quarter="+this.selectedQuarter).toPromise();
     this.autocompleteList = data.results.map((s: AutocompleteCourse) => s.value);
   }
 
@@ -77,7 +79,7 @@ export class AppComponent {
       return;
     }
     const watchlist = this.watchlist.join(",");
-    const data: any = await this.http.get("http://localhost:3000/info?quarter="+this.selectedQuarter+"&ids=" + watchlist).toPromise();
+    const data: any = await this.http.get(this.apiUrl+"/info?quarter="+this.selectedQuarter+"&ids=" + watchlist).toPromise();
     this.results = data.results;
     for(let result of this.results){
       result.selected = selected.includes(result.class_nbr);
@@ -148,7 +150,7 @@ export class AppComponent {
       if(code.split(" ").length<2){
         continue;
       }
-      const data: any = await this.http.get("http://localhost:3000/query?quarter="+this.selectedQuarter+"&query="+code).toPromise();
+      const data: any = await this.http.get(this.apiUrl+"/query?quarter="+this.selectedQuarter+"&query="+code).toPromise();
       const courses: CourseavailResult[] = data.results;
       this.rawInput = "";
       //add non-duplicate courses to this.results
