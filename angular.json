@@ -119,8 +119,5 @@
       }
     }
   },
-  "defaultProject": "scu-schedule-planner",
-  "cli": {
-    "analytics": false
-  }
+  "defaultProject": "scu-schedule-planner"
 }
