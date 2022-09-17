@@ -16,13 +16,23 @@ import {MatInputModule} from '@angular/material/input';
 import {MatListModule} from '@angular/material/list';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import { PopupComponent } from './popup/popup.component';
+import { initializeApp,provideFirebaseApp } from '@angular/fire/app';
 import { environment } from '../environments/environment';
-import { ScreenTrackingService,UserTrackingService } from '@angular/fire/analytics';
+import { provideAnalytics,getAnalytics,ScreenTrackingService,UserTrackingService } from '@angular/fire/analytics';
+import { provideAuth,getAuth } from '@angular/fire/auth';
+import { provideFirestore,getFirestore } from '@angular/fire/firestore';
+import { provideFunctions,getFunctions } from '@angular/fire/functions';
 import { AngularFireAuthModule, USE_EMULATOR as USE_AUTH_EMULATOR } from "@angular/fire/compat/auth";
-import { AngularFireModule } from '@angular/fire/compat';
-import {MatMenuModule} from '@angular/material/menu';
-import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
+import {firebase, firebaseui, FirebaseUIModule} from 'firebaseui-angular';
 
+
+const firebaseUiAuthConfig: firebaseui.auth.Config = {
+  signInFlow: 'popup',
+  signInOptions: [
+    firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+  ],
+  credentialHelper: firebaseui.auth.CredentialHelper.GOOGLE_YOLO
+};
 
 @NgModule({
   declarations: [
@@ -44,19 +54,15 @@ import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
     ReactiveFormsModule,
     MatListModule,
     MatCheckboxModule,
-    MatMenuModule,
-    AngularFireModule.initializeApp(environment.firebase),
-    AngularFireAuthModule,
-    AngularFirestoreModule
-    // provideFirebaseApp(() => initializeApp(environment.firebase)),
-    // provideAnalytics(() => getAnalytics()),
-    // provideAuth(() => getAuth()),
-    // provideFirestore(() => getFirestore()),
-    // provideFunctions(() => getFunctions()),
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideAnalytics(() => getAnalytics()),
+    provideAuth(() => getAuth()),
+    provideFirestore(() => getFirestore()),
+    provideFunctions(() => getFunctions()),
+    FirebaseUIModule.forRoot(firebaseUiAuthConfig)
   ],
   providers: [
-    ScreenTrackingService,
-    UserTrackingService,
+    ScreenTrackingService,UserTrackingService
   ],
   bootstrap: [AppComponent]
 })
