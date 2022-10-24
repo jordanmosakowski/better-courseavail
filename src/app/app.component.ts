@@ -166,10 +166,14 @@ export class AppComponent {
     this.updateEvents();
   }
 
-  saveSelected(): void{
+  getSelected(): CourseavailResult[]{
     const selected = this.results.filter(c => c.selected ?? false);
-    const ids = selected.map(c => c.class_nbr);
-    localStorage.setItem(this.selectedQuarter+"-selected",JSON.stringify(ids));
+    return selected;
+  }
+
+  saveSelected(): void{
+    const selected = this.getSelected();
+    localStorage.setItem(this.selectedQuarter+"-selected",JSON.stringify(selected.map((x) => x.class_nbr)));
   }
 
   getCourseName(course: CourseavailResult): string{
@@ -284,6 +288,7 @@ export class AppComponent {
   }
 
   showPopup = false;
+  showExport = false;
 
   openPopup(){
     this.showPopup = true;

@@ -31,6 +31,7 @@
 <main>
   <div class='configure'>
     <mat-list>
+      <button mat-raised-button color='primary' (click)="showExport = true">Export Course Numbers</button>
       <h1>Configure</h1>
       <mat-list-item>
         <mat-checkbox [(ngModel)]="includeWeekends">Show Weekends</mat-checkbox>
@@ -79,11 +80,22 @@
 <div class="popup" *ngIf="showPopup">
   <app-popup [closePopup]="closePopup" [addItem]="createCustom"></app-popup>
 </div>
+<div class="popup" *ngIf="showExport">
+  <div>
+    <h3>Course Number List</h3>
+    <p *ngIf="getSelected().length == 0">No courses selected</p>
+    <p *ngFor="let course of getSelected()">
+      {{course.class_nbr}} ({{getCourseName(course)}} - {{course.class_descr}})
+    </p>
+    <button mat-raised-button (click)="showExport = false">Close</button>
+  </div>
+</div>
 
 <ng-template #tooltipTemplate let-event="event">
   <div class='tooltip'>
     <div class="smaller">
-    {{event.title}} ({{event.meta.name}})<br>
+    {{event.title}} 
+    <span *ngIf="!event.meta.isCustom">({{event.meta.name}})</span><br>
     {{event.meta.time}}<br>
     <ng-container *ngIf="!event.meta.isCustom">
       {{event.meta.prof}}<br>
