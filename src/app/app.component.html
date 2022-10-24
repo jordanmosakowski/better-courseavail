@@ -11,8 +11,8 @@
            (keydown.enter)="makeQuery()"
            [matAutocomplete]="auto">
     <mat-autocomplete #auto="matAutocomplete">
-      <mat-option *ngFor="let option of filteredOptions | async" [value]="option" (click)="optionClicked(option)">
-        {{option}}
+      <mat-option *ngFor="let option of filteredOptions | async" [value]="option.value" (click)="optionClicked(option.value)">
+        {{option.label}}
       </mat-option>
     </mat-autocomplete>
   </mat-form-field>
@@ -83,7 +83,7 @@
 <ng-template #tooltipTemplate let-event="event">
   <div class='tooltip'>
     <div class="smaller">
-    {{event.title}}<br>
+    {{event.title}} ({{event.meta.name}})<br>
     {{event.meta.time}}<br>
     <ng-container *ngIf="!event.meta.isCustom">
       {{event.meta.prof}}<br>

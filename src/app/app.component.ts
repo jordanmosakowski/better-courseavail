@@ -28,13 +28,13 @@ export class AppComponent {
 
   results: CourseavailResult[] = [];
 
-  autocompleteList:String[] = [];
+  autocompleteList:AutocompleteCourse[] = [];
   myControl = new FormControl('');
-  filteredOptions: Observable<String[]>;
-  private _filter(value: String): String[] {
+  filteredOptions: Observable<AutocompleteCourse[]>;
+  private _filter(value: String): AutocompleteCourse[] {
     const filterValue = value.toLowerCase();
 
-    return this.autocompleteList.filter(option => option.toLowerCase().includes(filterValue));
+    return this.autocompleteList.filter(option => option.value.toLowerCase().includes(filterValue));
   }
 
   viewDate: Date = new Date(2022,8,18);
@@ -55,13 +55,13 @@ export class AppComponent {
   async getQuarters(){
     const data: any = await this.http.get(this.apiUrl+"/quarters").toPromise();
     this.quarters = data.indb;
-    this.selectedQuarter = data.currdef.value.toString();
+    this.selectedQuarter = localStorage.getItem("selectedQuarter") ?? data.currdef.value.toString();
     this.changeQuarter();
   }
 
   async requestCourselist(){
     const data: any = await this.http.get(this.apiUrl+"/courses?quarter="+this.selectedQuarter).toPromise();
-    this.autocompleteList = data.results.map((s: AutocompleteCourse) => s.value);
+    this.autocompleteList = data.results;
   }
 
   optionClicked(course: String){
@@ -223,6 +223,7 @@ export class AppComponent {
         },
         meta: {
           section: ca.class_nbr,
+          name: ca.class_descr,
           prof: ca.instr_1_sh,
           seats: Number(ca.seats_remaining),
           loc: ca.l_cname ?? ca.mtg_facility_1,
@@ -374,6 +375,7 @@ export class AppComponent {
   }
 
   changeQuarter(){
+    localStorage.setItem("selectedQuarter", this.selectedQuarter ?? "");
     this.watchlist = JSON.parse(localStorage.getItem(this.selectedQuarter+"-watchlist") ?? "[]");
     this.courses = JSON.parse(localStorage.getItem(this.selectedQuarter+"-courses") ?? "{}");
     console.log(this.watchlist);
@@ -391,6 +393,7 @@ interface CourseavailResult{
   seats_remaining: string,
   catalog_nbr?: string,
   class_nbr: string, // ######
+  class_descr?: string,
   subject: string,
   instr_1_sh?: string,
   l_cname?: string,
