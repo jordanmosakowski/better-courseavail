@@ -55,7 +55,12 @@ export class AppComponent {
   async getQuarters(){
     const data: any = await this.http.get(this.apiUrl+"/quarters").toPromise();
     this.quarters = data.indb;
-    this.selectedQuarter = localStorage.getItem("selectedQuarter") ?? data.currdef.value.toString();
+    if(localStorage.getItem("selectedQuarter")==null && data.currdef.value.toString() == "4400") {
+      this.selectedQuarter = "4420";
+    }
+    else{
+      this.selectedQuarter = localStorage.getItem("selectedQuarter") ?? data.currdef.value.toString();
+    }
     this.changeQuarter();
   }
 
