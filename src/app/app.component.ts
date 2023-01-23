@@ -222,7 +222,7 @@ export class AppComponent {
       const end = new Date(year, month, 18+this.dayStrToNum(day), startHour, endMinute);
       let selected = (ca.selected ?? false) || (ca.isCustom ?? false);
       events.push({
-        title: title,
+        title: title + " | " + ca.instr_1_sh,
         start: start,
         end: end,
         cssClass: selected ? "selected" : "deselected",
